@@ -281,16 +281,17 @@ export class EsriMapComponent implements OnInit, OnDestroy {
     addFeatureLayers() {
         // Creez stratul de drumuri
         this.trailheadsLayer = new FeatureLayer({
-            url: "https://services1.arcgis.com/equSgvG6lh32w77K/arcgis/rest/services/Romania1000k/FeatureServer/3",
+            url: "https://services1.arcgis.com/equSgvG6lh32w77K/arcgis/rest/services/Romania1000k/FeatureServer/9/query?where=1%3D1&outFields=*&outSR=4326&f=json",
             outFields: ['*'], // Selectez toate câmpurile disponibile
             popupTemplate: {
-                title: "Detalii Drum",
+                title: "Detalii Județ",
                 content: `
-                    <b>Tip Drum:</b> {TIP1}<br>
-                    <b>Nume Drum Principal:</b> {NUME1}<br>
-                    <b>Tip Drum Secundar:</b> {TIP2}<br>
-                    <b>Nume Drum Secundar:</b> {NUME2}<br>
-                    <b>Enabled:</b> {Enabled}
+                    <b>Nume:</b> {NUME}<br>
+                    <b>Municipiu:</b> {CAPITALA}<br>
+                    <b>Suprafața:</b> {S_KM2}<br>
+                    <b>Orașe:</b> {NR_URBAN}<br>
+                    <b>Comune:</b> {NR_RURAL}<br>
+                    <b>Populație:</b> {POP92}
                 `
             }
         });
