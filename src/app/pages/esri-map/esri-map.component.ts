@@ -252,17 +252,17 @@ export class EsriMapComponent implements OnInit, OnDestroy {
         
 
             // Adaugă evenimentul de clic pentru a adăuga un punct
-            this.view.on("click", (event) => {
-                const point = this.view.toMap({ x: event.x, y: event.y });
-                if (point) {
-                    // Adaugă punctul în Firebase și pe hartă
-                    this.addPointToFirebase(point.latitude, point.longitude);
-                }
-            });
+            // this.view.on("click", (event) => {
+            //     const point = this.view.toMap({ x: event.x, y: event.y });
+            //     if (point) {
+            //         // Adaugă punctul în Firebase și pe hartă
+            //         this.addPointToFirebase(point.latitude, point.longitude);
+            //     }
+            // });
 
             await this.view.when();
             console.log("ArcGIS map loaded");
-            this.addRouting();
+            this.addRoutingFromGeolocationToPoint();
             this.addSearchWidget();
             return this.view;
         } catch (error) {
@@ -311,27 +311,7 @@ export class EsriMapComponent implements OnInit, OnDestroy {
         this.map.add(this.graphicsLayerUserPoints);
     }
 
-    addRouting() {
-        const routeUrl = "https://route-api.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World";
-        this.view.on("click", (event) => {
-            this.view.hitTest(event).then((elem: esri.HitTestResult) => {
-                if (elem && elem.results && elem.results.length > 0) {
-                    let point: esri.Point = elem.results.find(e => e.layer === this.trailheadsLayer)?.mapPoint;
-                    if (point) {
-                        console.log("get selected point: ", elem, point);
-                        if (this.graphicsLayerUserPoints.graphics.length === 0) {
-                            this.addPoint(point.latitude, point.longitude);
-                        } else if (this.graphicsLayerUserPoints.graphics.length === 1) {
-                            this.addPoint(point.latitude, point.longitude);
-                            this.calculateRoute(routeUrl);
-                        } else {
-                            this.removePoints();
-                        }
-                    }
-                }
-            });
-        });
-    }
+
 
     addPoint(lat: number, lng: number) {
         let point = new Point({
@@ -364,38 +344,8 @@ export class EsriMapComponent implements OnInit, OnDestroy {
         this.graphicsLayerRoutes.removeAll();
     }
 
-    async calculateRoute(routeUrl: string) {
-        const routeParams = new RouteParameters({
-            stops: new FeatureSet({
-                features: this.graphicsLayerUserPoints.graphics.toArray()
-            }),
-            returnDirections: true
-        });
 
-        try {
-            const data = await route.solve(routeUrl, routeParams);
-            this.displayRoute(data);
-        } catch (error) {
-            console.error("Error calculating route: ", error);
-            alert("Error calculating route");
-        }
-    }
 
-    displayRoute(data: any) {
-        for (const result of data.routeResults) {
-            result.route.symbol = {
-                type: "simple-line",
-                color: [5, 150, 255],
-                width: 3
-            };
-            this.graphicsLayerRoutes.graphics.add(result.route);
-        }
-        if (data.routeResults.length > 0) {
-            this.showDirections(data.routeResults[0].directions.features);
-        } else {
-            alert("No directions found");
-        }
-    }
 
     clearRouter() {
         if (this.view) {
@@ -409,21 +359,154 @@ export class EsriMapComponent implements OnInit, OnDestroy {
         }
     }
 
-    showDirections(features: any[]) {
-        this.directionsElement = document.createElement("ol");
-        this.directionsElement.classList.add("esri-widget", "esri-widget--panel", "esri-directions__scroller");
-        this.directionsElement.style.marginTop = "0";
-        this.directionsElement.style.padding = "15px 15px 15px 30px";
 
-        features.forEach((result, i) => {
-            const direction = document.createElement("li");
-            direction.innerHTML = `${result.attributes.text} (${result.attributes.length} miles)`;
-            this.directionsElement.appendChild(direction);
-        });
 
-        this.view.ui.empty("top-right");
-        this.view.ui.add(this.directionsElement, "top-right");
+    addRoutingFromGeolocationToPoint() {
+        const routeUrl = "https://route-api.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World";
+      
+        // Obține locația curentă
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const userLatitude = position.coords.latitude;
+                    const userLongitude = position.coords.longitude;
+    
+                    // Adaugă locația utilizatorului pe hartă
+                    const userPoint = new Point({
+                        latitude: userLatitude,
+                        longitude: userLongitude
+                    });
+    
+                    const userSymbol = {
+                        type: "simple-marker",
+                        color: [0, 120, 255], // Albastru
+                        outline: { color: [255, 255, 255], width: 1 } // Contur alb
+                    };
+    
+                    const userGraphic = new Graphic({
+                        geometry: userPoint,
+                        symbol: userSymbol
+                    });
+    
+                    this.graphicsLayerUserPoints.removeAll();
+                    this.graphicsLayerUserPoints.add(userGraphic);
+    
+                    console.log("Locația curentă adăugată:", { userLatitude, userLongitude });
+
+                    let redPointGraphic: esri.Graphic = null;  // Variabilă pentru a păstra punctul roșu
+    
+                    // Ascultă evenimentul de clic pe hartă
+                    this.view.on("click", (event) => {
+                        // Conversia coordonatelor ecranului în coordonate ale hărții
+                        const clickedPoint = this.view.toMap({ x: event.x, y: event.y });
+                        console.log("Punct clicat:", clickedPoint.latitude, clickedPoint.longitude);
+    
+                        if (clickedPoint) {
+                            console.log("Coordonatele punctului selectat:", clickedPoint);
+                            
+
+                            // Dacă există un punct roșu anterior, elimină-l
+                            if (redPointGraphic) {
+                                this.graphicsLayerUserPoints.remove(redPointGraphic);
+                            }
+    
+                            // Adaugă punctul selectat pe hartă
+                            const clickedSymbol = {
+                                type: "simple-marker",
+                                color: [255, 0, 0], // Roșu
+                                outline: { color: [255, 255, 255], width: 1 } // Contur alb
+                            };
+
+                            redPointGraphic = new Graphic({
+                                geometry: clickedPoint,
+                                symbol: clickedSymbol
+                            });
+    
+    
+                            // Adaugă graficul în strat
+                            this.graphicsLayerUserPoints.add(redPointGraphic);
+                            const clickedP = this.view.toMap({ x: event.x, y: event.y });
+                            // Afișează ruta
+                            const routeParams = new RouteParameters({
+                                stops: new FeatureSet({
+                                    features: [
+                                        redPointGraphic,
+                                        new Graphic({ geometry: userPoint }) // Folosește locația utilizatorului
+                                         // Folosește locația clicată
+                                    ]
+                                }),
+                                returnDirections: true
+                            });
+    
+                            route.solve(routeUrl, routeParams)
+                                .then((data) => {
+                                    this.displayRoute(data);
+                                })
+                                .catch((error) => {
+                                    console.error("Eroare la calcularea rutei:", error);
+                                    alert("Nu s-a putut calcula ruta.");
+                                });
+                        }
+                    });
+                },
+                (error) => {
+                    console.error("Eroare la obținerea locației curente:", error);
+                    alert("Nu s-a putut obține locația curentă.");
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 5000,
+                    maximumAge: 0
+                }
+            );
+        } else {
+            alert("Geolocalizarea nu este disponibilă.");
+        }
     }
+    
+    
+    displayRoute(data: any) {
+        // Șterge toate rutele anterioare de pe hartă
+        this.graphicsLayerRoutes.removeAll();
+    
+        // Parcurge toate rezultatele rutei
+        data.routeResults.forEach((result: any) => {
+            // Stilizează linia rutei
+            result.route.symbol = {
+                type: "simple-line", // Linie simplă
+                color: [0, 0, 255], // Albastru
+                width: 3 // Grosimea liniei
+            };
+    
+            // Adaugă ruta pe stratul de grafică
+            this.graphicsLayerRoutes.add(result.route);
+        });
+    
+        // Afișează instrucțiunile de direcție, dacă sunt disponibile
+        if (data.routeResults.length > 0 && data.routeResults[0].directions) {
+            this.showDirections(data.routeResults[0].directions.features);
+        } else {
+            alert("Nu s-au găsit direcții pentru această rută.");
+        }
+    }
+    
+    
+    showDirections(features: any[]) {
+        const directionsElement = document.createElement("ol");
+        directionsElement.classList.add("esri-widget", "esri-widget--panel", "esri-directions__scroller");
+        directionsElement.style.marginTop = "0";
+        directionsElement.style.padding = "15px 15px 15px 30px";
+    
+        features.forEach((result) => {
+            const direction = document.createElement("li");
+            direction.innerHTML = `${result.attributes.text} (${result.attributes.length.toFixed(2)} km)`;
+            directionsElement.appendChild(direction);
+        });
+    
+        this.view.ui.empty("top-right");
+        this.view.ui.add(directionsElement, "top-right");
+    }
+
 
     
 
