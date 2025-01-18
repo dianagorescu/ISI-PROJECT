@@ -403,7 +403,6 @@ export class EsriMapComponent implements OnInit, OnDestroy {
     
                         if (clickedPoint) {
                             console.log("Coordonatele punctului selectat:", clickedPoint);
-                            
 
                             // Dacă există un punct roșu anterior, elimină-l
                             if (redPointGraphic) {
@@ -421,18 +420,21 @@ export class EsriMapComponent implements OnInit, OnDestroy {
                                 geometry: clickedPoint,
                                 symbol: clickedSymbol
                             });
-    
+                            
     
                             // Adaugă graficul în strat
                             this.graphicsLayerUserPoints.add(redPointGraphic);
-                            const clickedP = this.view.toMap({ x: event.x, y: event.y });
+                            const clickedP = new Point({
+                                latitude: clickedPoint.latitude, // latitudine
+                                longitude: clickedPoint.longitude // longitudine
+                            });
                             // Afișează ruta
                             const routeParams = new RouteParameters({
                                 stops: new FeatureSet({
                                     features: [
-                                        redPointGraphic,
-                                        new Graphic({ geometry: userPoint }) // Folosește locația utilizatorului
-                                         // Folosește locația clicată
+                                        
+                                        new Graphic({ geometry: userPoint }), // Folosește locația utilizatorului
+                                        new Graphic({ geometry: clickedP})
                                     ]
                                 }),
                                 returnDirections: true
