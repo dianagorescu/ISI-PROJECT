@@ -563,41 +563,39 @@ export class EsriMapComponent implements OnInit, OnDestroy {
     filteredLocations: any[] = []; // Array pentru locațiile filtrate
 
     fetchLocations(): void {
-        // Exemplu simplu - în practică, aceasta poate fi o cerere HTTP
-        this.allLocations = [
-            { name: 'Cabinet 1', judet: 'Alba' },
-            { name: 'Cabinet 2', judet: 'Arad' },
-            { name: 'Cabinet 3', judet: 'Argeș' },
-            // Adaugă mai multe locații
-        ];
-        this.filteredLocations = [...this.allLocations]; // Inițial, toate locațiile sunt afișate
+        this.fbs.getMapPoints().subscribe((data: any[]) => {
+            console.log('Date din Firebase:', data); // Verificăm datele primite
+            this.allLocations = data; // Stocăm toate locațiile din Firebase
+            this.filteredLocations = [...this.allLocations]; // Inițial, toate locațiile sunt afișate
+        });
     }
-    
-    counties: string[] = [
-        'Alba', 'Arad', 'Argeș', 'Bacău', 'Bihor', 'Bistrița-Năsăud', 'Brăila', 'Brașov', 'București', 'Buzău',
-        'Caraș-Severin', 'Călărași', 'Cluj', 'Constanța', 'Covasna', 'Dâmbovița', 'Dolj', 'Galați', 'Giurgiu',
-        'Gorj', 'Harghita', 'Hunedoara', 'Ialomița', 'Iași', 'Ilfov', 'Maramureș', 'Mehedinți', 'Mureș',
-        'Neamț', 'Olt', 'Prahova', 'Sălaj', 'Satu Mare', 'Sibiu', 'Suceava', 'Teleorman', 'Timiș', 'Tulcea',
-        'Vâlcea', 'Vaslui', 'Vrancea'
-    ];
 
-    onSearchCounty(event: Event): void {
-        const query = (event.target as HTMLInputElement).value.toLowerCase();
+counties: string[] = [
+    'Alba', 'Arad', 'Argeș', 'Bacău', 'Bihor', 'Bistrița-Năsăud', 'Brăila', 'Brașov', 'București', 'Buzău',
+    'Caraș-Severin', 'Călărași', 'Cluj', 'Constanța', 'Covasna', 'Dâmbovița', 'Dolj', 'Galați', 'Giurgiu',
+    'Gorj', 'Harghita', 'Hunedoara', 'Ialomița', 'Iași', 'Ilfov', 'Maramureș', 'Mehedinți', 'Mureș',
+    'Neamț', 'Olt', 'Prahova', 'Sălaj', 'Satu Mare', 'Sibiu', 'Suceava', 'Teleorman', 'Timiș', 'Tulcea',
+    'Vâlcea', 'Vaslui', 'Vrancea'
+];
+
+onSearchCounty(event: Event): void {
+    const query = (event.target as HTMLInputElement).value.toLowerCase();
+    this.filteredLocations = this.allLocations.filter(location =>
+        location['Județ'].toLowerCase().includes(query) // Filtrare după câmpul "Județ"
+    );
+}
+
+onFilterCounty(event: Event): void {
+    const selectedCounty = (event.target as HTMLSelectElement).value;
+    if (selectedCounty) {
         this.filteredLocations = this.allLocations.filter(location =>
-            location.county.toLowerCase().includes(query)
+            location['Județ'] === selectedCounty // Filtrare după județ selectat
         );
+    } else {
+        this.filteredLocations = [...this.allLocations]; // Resetare la toate locațiile
     }
-    
-    onFilterCounty(event: Event): void {
-        const selectedCounty = (event.target as HTMLSelectElement).value;
-        if (selectedCounty) {
-            this.filteredLocations = this.allLocations.filter(location =>
-                location.judet === selectedCounty
-            );
-        } else {
-            this.filteredLocations = [...this.allLocations]; // Resetare
-        }
-    }
+}
+
     
     ngOnDestroy() {
         this.disconnectFirebase();
