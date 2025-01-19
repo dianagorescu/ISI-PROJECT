@@ -572,7 +572,7 @@ export class EsriMapComponent implements OnInit, OnDestroy {
 
     counties: string[] = [
         'Adjud', 'Aiud', 'Alba Iulia', 'Avrig', 'Baia Mare', 'Baia de Aramă', 'Bârlad', 'Beiuș', 'Bicaz', 
-        'Bistrița', 'Blaj', 'București', 'București', 'Budești', 'Buftea', 'Bucium', 'Buzău', 'Bălcești', 
+        'Bistrița', 'Blaj', 'București', 'Budești', 'Buftea', 'Bucium', 'Buzău', 'Bălcești', 
         'Călărași', 'Câmpina', 'Câmpulung Moldovenesc', 'Caracal', 'Caransebeș', 'Câmpulung', 'Cisnădie', 
         'Cluj-Napoca', 'Comănești', 'Constanța', 'Curtea de Argeș', 'Dej', 'Deva', 'Drobeta-Turnu Severin', 
         'Fălticeni', 'Făurei', 'Fetești', 'Focșani', 'Ghimbav', 'Galați', 'Giurgiu', 'Gheorgheni', 'Gura Humorului',
