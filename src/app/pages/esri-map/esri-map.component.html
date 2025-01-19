@@ -14,7 +14,8 @@
         <ul>
             <li *ngFor="let location of filteredLocations">
                 <h3>{{ location['Nume'] }}</h3> <!-- Numele cabinetului -->
-                <p><strong>Strada:</strong> {{ location['Adresa'] }}</p> <!-- Adresa -->
+                <p><strong>Strada:</strong> {{ location['Strada'] }}</p> <!-- Strada -->
+                <p><strong>Numar:</strong> {{ location['Numar'] }}</p> <!-- Numarul strazii -->
                 <p><strong>Telefon:</strong> {{ location['Telefon'] }}</p> <!-- Telefon -->
                 <p><strong>Program:</strong> {{ location['Program'] }}</p> <!-- Program -->
                 <p><strong>Localitate:</strong> {{ location['Localitate'] }}</p> <!-- Localitate -->

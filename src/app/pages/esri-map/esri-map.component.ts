@@ -16,6 +16,7 @@ import Polygon from '@arcgis/core/geometry/Polygon';
 import Config from '@arcgis/core/config';
 import WebMap from '@arcgis/core/WebMap';
 import MapView from '@arcgis/core/views/MapView';
+import * as locator from '@arcgis/core/rest/locator';
 import Bookmarks from '@arcgis/core/widgets/Bookmarks';
 import Expand from '@arcgis/core/widgets/Expand';
 import Geolocation from '@arcgis/core/widgets/Locate';
@@ -36,6 +37,7 @@ import Search from "@arcgis/core/widgets/Search";
 import { Subscription } from "rxjs";
 import { FirebaseService, IDatabaseItem } from "src/app/services/firebase";
 import { SuperheroFactoryService } from "src/app/services/superhero-factory";
+import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 
 @Component({
     selector: "app-esri-map",
@@ -54,14 +56,18 @@ export class EsriMapComponent implements OnInit, OnDestroy {
     trailheadsLayer: esri.FeatureLayer;
     graphicsLayerUserPoints: esri.GraphicsLayer;
     graphicsLayerStaticPoints: esri.GraphicsLayer;
+    locator: esri.locator;
+    reactiveUtils: esri.reactiveUtils;
 
     zoom = 6;
     center: Array<number> = [24, 46.07817583063242];
     basemap = "streets-vector";
     loaded = false;
     directionsElement: any;
+    
 
     // constructor() { }
+    
 
     isConnected: boolean = false;
     subscriptionList: Subscription;
@@ -75,6 +81,8 @@ export class EsriMapComponent implements OnInit, OnDestroy {
     ) {
 
     }
+
+    
 
     ngOnInit() {
         try {
@@ -96,7 +104,63 @@ export class EsriMapComponent implements OnInit, OnDestroy {
             alert("Error loading the map");
         }
     }
+    filtrarea(){
+        const places = ["Choose a place type...", "Parks and Outdoors", "Coffee shop", "Gas station", "Food", "Hotel"];
+        const select = document.createElement("select");
+        select.setAttribute("class", "esri-widget esri-select");
+        select.setAttribute("style", "width: 175px; font-family: 'Avenir Next W00'; font-size: 1em");
 
+        places.forEach((p) => {
+            const option = document.createElement("option");
+            option.value = p;
+            option.innerHTML = p;
+            select.appendChild(option);
+          });
+        this.view.ui.add(select, "top-right");
+        const locatorUrl = "http://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer";
+    
+        function findPlaces(category, pt) {
+            this.locator
+              .addressToLocations(locatorUrl, {location: pt, categories: [category],maxLocations: 25,outFields: ["Place_addr", "PlaceName"]})
+  
+              .then((results) => {
+                this.view.closePopup();
+                this.view.graphics.removeAll();
+
+                const pointSymbol2 = {
+                    type: "simple-marker",
+                    color: [97, 255, 255],   // Mov pentru punctele statice
+                    outline: { color: [255, 255, 255], width: 2 } // Contur alb
+                };
+
+                results.forEach((result) => {
+                    this.view.graphics.add(
+                      new Graphic({
+                        attributes: result.attributes, // Data attributes returned
+                        geometry: result.location, // Point returned
+                        symbol: pointSymbol2,
+    
+                        popupTemplate: {
+                          title: "{PlaceName}", // Data attribute names
+                          content: "{Place_addr}"
+                        }
+                      })
+                    );
+                  });
+              });
+          }
+          reactiveUtils.when(
+            () => this.view.stationary,
+            () => {
+              findPlaces(select.value, this.view.center);
+            }
+          );
+
+          select.addEventListener("change", (event) => {
+            const target = event.target as HTMLSelectElement;
+            findPlaces(target.value, this.view.center);
+          });
+    }
 
     connectFirebase() {
         if (this.isConnected) {
@@ -151,9 +215,9 @@ export class EsriMapComponent implements OnInit, OnDestroy {
             const longitude = place.lon;
             const Nume = place.tags?.name || 'N/A';
             const Program = place.tags?.opening_hours || 'N/A';
-            const Localitate = place.tags?.city || 'N/A';
-            const Strada = place.tags?.street || 'N/A';
-            const Numar = place.tags?.housenumber || 'N/A';
+            const Localitate = place.tags["addr:city"] ? place.tags["addr:city"] : 'N/A';
+            const Strada = place.tags["addr:street"] ? place.tags["addr:street"] : 'N/A';
+            const Numar = place.tags["addr:housenumber"] ? place.tags["addr:housenumber"] : 'N/A';
             const Telefon = place.tags?.phone || 'N/A';
             const Site = place.tags?.website || 'N/A';
             const Email = place.tags?.email || 'N/A';
@@ -247,7 +311,6 @@ export class EsriMapComponent implements OnInit, OnDestroy {
     }
 
     // *********************************************
-
     async initializeMap() {
         try {
             Config.apiKey = "AAPTxy8BH1VEsoebNVZXo8HurGZnrO0aYjmZ_npt39dGgIyZUAxtLIFy4jO4rcFTpRiXKEPtdLox0sphDby4Pf6e2cRTjkx4O1rJxzaNe2YUaFVX2pdMvvHDgd4tIg0woOjnsR6dSr-4xVUMpUT5VNKBkHNGxwIbrBHoj_sbQRQcttaQd5yruV7KX0UiWKR20TjstcDwmL8_fcY2n81h6AgLfTiNIlCEaWHJy7B7cYmfHV0.AT1_z3CHMbib";
@@ -267,7 +330,6 @@ export class EsriMapComponent implements OnInit, OnDestroy {
                 map: this.map
             };
             this.view = new MapView(mapViewProperties);
-
             // Adăugăm widgetul de Geolocalizare
             const geoLocate = new Geolocation({
                 view: this.view, // Harta pe care se va adăuga widgetul
@@ -287,12 +349,18 @@ export class EsriMapComponent implements OnInit, OnDestroy {
             //         this.addPointToFirebase(point.latitude, point.longitude);
             //     }
             // });
-
+            
             await this.view.when();
             console.log("ArcGIS map loaded");
             this.addRoutingFromGeolocationToPoint();
             this.addSearchWidget();
+            //this.filtrarea();
+
+
             return this.view;
+
+            
+
         } catch (error) {
             console.error("Error loading the map: ", error);
             alert("Error loading the map");
