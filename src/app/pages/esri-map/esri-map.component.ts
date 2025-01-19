@@ -132,34 +132,60 @@ export class EsriMapComponent implements OnInit, OnDestroy {
         }
     }
 
-    fetchVeterinaryLocationsFromAPI() {
-        const url = 'https://nominatim.openstreetmap.org/search?q=cabinet+veterinar&format=json';
+    async fetchVeterinaryLocationsFromAPI() {
+
+        const url = 'https://overpass-api.de/api/interpreter?data=[out:json][timeout:600];area["ISO3166-1"="RO"]->.searchArea;(node["amenity"="veterinary"](area.searchArea););out body;';
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error('HTTP error! status: ${response.status}');
+        }
+        const data = await response.json();
+
+        console.log("Fetched data:", data);
+        //let count = 0;
+        data.elements.forEach(place => {
+            //count++;
+            // Preia coordonatele necesare
+            const latitude = place.lat;
+            const longitude = place.lon;
+            const Nume = place.tags?.name || 'N/A';
+            const Program = place.tags?.opening_hours || 'N/A';
+            const Localitate = place.tags?.city || 'N/A';
+            const Strada = place.tags?.street || 'N/A';
+            const Numar = place.tags?.housenumber || 'N/A';
+            const Telefon = place.tags?.phone || 'N/A';
+            const Site = place.tags?.website || 'N/A';
+            const Email = place.tags?.email || 'N/A';
+
+
+            //console.log("Fetched nume:", Nume);
+
     
-        fetch(url)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                data.forEach(place => {
-                    // Preia coordonatele necesare
-                    const latitude = parseFloat(place.lat);
-                    const longitude = parseFloat(place.lon);
-    
-                    // Adaugă coordonatele în Firebase
-                    this.addPointToFirebase(latitude, longitude);
-                });
-                console.log("Locațiile cabinetelor veterinare au fost adăugate din Nominatim API.");
-            })
-            .catch(error => console.error("Eroare la preluarea locațiilor:", error));
+            // Adaugă coordonatele în Firebase
+            this.addPointToFirebase(latitude, longitude,
+                Nume, Strada, Numar,
+                Localitate, Program,
+                Telefon, Site,
+                Email);
+        });
+        //console.log(`Processed ${count} entries.`);
+        //console.log(results);
+    } catch (error) {
+        console.error("Error fetching data:", error);
     }
+        }
     // *********************************************
 
-    addPointToFirebase(lat: number, lng: number) {
+    addPointToFirebase(lat: number, lng: number, Nume: string, Strada: string,
+        Numar: string, Localitate: string, Program: string, Telefon: string,
+        Site: string, Email: string) {
         // Salvăm coordonatele punctului în Firebase
-        this.fbs.addListObject({ latitude: lat, longitude: lng });
+        this.fbs.addListObject({ Strada: Strada, Numar: Numar, Email: Email,
+            Localitate: Localitate,
+            Nume: Nume, Program: Program,
+            Site: Site, Telefon: Telefon,
+            latitude: lat, longitude: lng});
     }
 
 

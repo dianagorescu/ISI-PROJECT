@@ -89,7 +89,12 @@ export class FirebaseService {
     }
 
     // Adaugă un obiect de locație (punct pe hartă) în lista din Firebase
-    addListObject(data: { latitude: number; longitude: number }) {
+    addListObject(data: { Strada:string; Numar:string;
+        Email: string;
+        Localitate: string; Nume: string; Program: string;
+        Site: string; Telefon: string;
+        latitude: number; longitude: number}) {
+        // Adăugăm un punct de locație în lista de puncte din Firebase
         this.db.list('mapPoints').push(data);
     }
 
