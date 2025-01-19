@@ -570,18 +570,29 @@ export class EsriMapComponent implements OnInit, OnDestroy {
         });
     }
 
-counties: string[] = [
-    'Alba', 'Arad', 'Argeș', 'Bacău', 'Bihor', 'Bistrița-Năsăud', 'Brăila', 'Brașov', 'București', 'Buzău',
-    'Caraș-Severin', 'Călărași', 'Cluj', 'Constanța', 'Covasna', 'Dâmbovița', 'Dolj', 'Galați', 'Giurgiu',
-    'Gorj', 'Harghita', 'Hunedoara', 'Ialomița', 'Iași', 'Ilfov', 'Maramureș', 'Mehedinți', 'Mureș',
-    'Neamț', 'Olt', 'Prahova', 'Sălaj', 'Satu Mare', 'Sibiu', 'Suceava', 'Teleorman', 'Timiș', 'Tulcea',
-    'Vâlcea', 'Vaslui', 'Vrancea'
-];
+    counties: string[] = [
+        'Adjud', 'Aiud', 'Alba Iulia', 'Avrig', 'Baia Mare', 'Baia de Aramă', 'Bârlad', 'Beiuș', 'Bicaz', 
+        'Bistrița', 'Blaj', 'București', 'București', 'Budești', 'Buftea', 'Bucium', 'Buzău', 'Bălcești', 
+        'Călărași', 'Câmpina', 'Câmpulung Moldovenesc', 'Caracal', 'Caransebeș', 'Câmpulung', 'Cisnădie', 
+        'Cluj-Napoca', 'Comănești', 'Constanța', 'Curtea de Argeș', 'Dej', 'Deva', 'Drobeta-Turnu Severin', 
+        'Fălticeni', 'Făurei', 'Fetești', 'Focșani', 'Ghimbav', 'Galați', 'Giurgiu', 'Gheorgheni', 'Gura Humorului',
+        'Iași', 'Ilfov', 'Imăraș', 'Ianca', 'Jibou', 'Lugoj', 'Ludus', 'Măgurele', 'Măcin', 'Medgidia', 'Mediaș', 
+        'Miercurea Ciuc', 'Mihăilești', 'Moreni', 'Măieruș', 'Mihăiești', 'Mihăilești', 'Mangalia', 'Mărășești', 
+        'Marghita', 'Negrești', 'Negrești-Oaș', 'Onești', 'Otopeni', 'Pașcani', 'Pitești', 'Ploiești', 'Pogoanele', 
+        'Pucioasa', 'Râmnicu Sărat', 'Reghin', 'Roman', 'Rovinari', 'Roșiori de Vede', 'Reșița', 'Rădăuți', 
+        'Sălaj', 'Săgeata', 'Sălciile', 'Sărdănești', 'Satu Mare', 'Săcele', 'Scornicești', 'Șimleu Silvaniei', 
+        'Suceava', 'Sighișoara', 'Suceava', 'Sighetu Marmației', 'Ștefănești', 'Sibiu', 'Ștefan cel Mare', 
+        'Suceava', 'Satu Mare', 'Salonta', 'Sighișoara', 'Slobozia', 'Sinaia', 'Târgu Jiu', 'Târgu Neamț', 
+        'Târgu Mureș', 'Târgu Bujor', 'Târgu Frumos', 'Timișoara', 'Timiș', 'Târgoviște', 'Tulcea', 'Urziceni', 
+        'Zalău', 'Zărnești', 'Zimnicea'
+    ];
+    
+    
 
 onSearchCounty(event: Event): void {
     const query = (event.target as HTMLInputElement).value.toLowerCase();
     this.filteredLocations = this.allLocations.filter(location =>
-        location['Județ'].toLowerCase().includes(query) // Filtrare după câmpul "Județ"
+        location['Localitate'].toLowerCase().includes(query) // Filtrare după câmpul "Județ"
     );
 }
 
@@ -589,7 +600,7 @@ onFilterCounty(event: Event): void {
     const selectedCounty = (event.target as HTMLSelectElement).value;
     if (selectedCounty) {
         this.filteredLocations = this.allLocations.filter(location =>
-            location['Județ'] === selectedCounty // Filtrare după județ selectat
+            location['Localitate'] === selectedCounty // Filtrare după județ selectat
         );
     } else {
         this.filteredLocations = [...this.allLocations]; // Resetare la toate locațiile
