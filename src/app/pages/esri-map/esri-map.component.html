@@ -2,16 +2,23 @@
 <div class="container">
     <!-- The DIV that will contain the map -->
     <div #mapViewNode class="map-view"></div>
-    <div center class="search-container">
+
+    <div class="search-container">
         <!-- Filtrare după județ -->
         <select (change)="onFilterCounty($event)">
             <option value="">Selectează județ</option>
             <option *ngFor="let county of counties" [value]="county">{{ county }}</option>
         </select>
-    
+        
+        <!-- Lista locațiilor filtrate cu detalii -->
         <ul>
             <li *ngFor="let location of filteredLocations">
-                {{ location.name }}
+                <h3>{{ location['Nume'] }}</h3> <!-- Numele cabinetului -->
+                <p><strong>Adresa:</strong> {{ location['Adresa'] }}</p> <!-- Adresa -->
+                <p><strong>Telefon:</strong> {{ location['Telefon'] }}</p> <!-- Telefon -->
+                <p><strong>Program:</strong> {{ location['Program'] }}</p> <!-- Program -->
+                <p><strong>Localitate:</strong> {{ location['Localitate'] }}</p> <!-- Localitate -->
+                <p><strong>Județ:</strong> {{ location['Județ'] }}</p> <!-- Județ -->
             </li>
         </ul>
 
@@ -25,27 +32,3 @@
 <!-- Floating Action Button (FAB) -->
 <button class="fab" (click)="clearRouter()">x</button>
 <button class="fabb" (click)="fetchVeterinaryLocationsFromAPI()">Aici</button>
-
-<!-- <div class="search-container">
-    <input type="text" placeholder="Caută județ..." (input)="onSearchCounty($event)">
-</div> -->
-<!-- <div center class="search-container"> -->
-    <!-- Filtrare după județ -->
-    <!-- <select (change)="onFilterCounty($event)">
-        <option value="">Selectează județ</option>
-        <option *ngFor="let county of counties" [value]="county">{{ county }}</option>
-    </select>
-
-    <ul>
-        <li *ngFor="let location of filteredLocations">
-            {{ location.name }}
-        </li>
-    </ul>
-</div> -->
-
-
-<div #mapViewNode class="map-view"></div>
-
-
-<!-- Containerul pentru hartă -->
-<div #mapViewNode class="map-view"></div>
