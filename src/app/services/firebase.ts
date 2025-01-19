@@ -5,6 +5,9 @@ import { Observable } from 'rxjs';
 export interface IDatabaseItem {
     name: string;
     val: string;
+    latitude: number;
+    longitude: number;
+    judet: string;
 }
 
 @Injectable()
@@ -37,7 +40,10 @@ export class FirebaseService {
     addSimpleListObject(val: string) {
         let item: IDatabaseItem = {
             name: "test",
-            val: val
+            val: val,
+            latitude: 44.39846573578901,
+            longitude: 26.11530834523235,
+            judet: "Random"
         };
         this.db.list('list').push(item);
     }
@@ -45,7 +51,10 @@ export class FirebaseService {
     updateObject(val: string) {
         let item: IDatabaseItem = {
             name: "test",
-            val: val
+            val: val,
+            latitude: 44.39846573578901,
+            longitude: 26.11530834523235,
+            judet: "Random"
         };
         this.db.object('obj').set([item]);
     }

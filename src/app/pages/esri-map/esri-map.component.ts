@@ -86,6 +86,8 @@ export class EsriMapComponent implements OnInit, OnDestroy {
                 this.connectFirebase();
                 this.displayFirebaseDataOnMap();
 
+                this.fetchLocations();
+
                 // Obținerea cabinetelor veterinare din Google Places API
                 //this.fetchVeterinaryLocationsFromAPI();
             });
@@ -345,9 +347,6 @@ export class EsriMapComponent implements OnInit, OnDestroy {
         this.graphicsLayerRoutes.removeAll();
     }
 
-
-
-
     clearRouter() {
         if (this.view) {
             // Remove all graphics related to routes
@@ -359,8 +358,6 @@ export class EsriMapComponent implements OnInit, OnDestroy {
             console.log("Directions cleared");
         }
     }
-
-
 
     addRoutingFromGeolocationToPoint() {
         const routeUrl = "https://route-api.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World";
@@ -467,7 +464,6 @@ export class EsriMapComponent implements OnInit, OnDestroy {
         }
     }
     
-    
     displayRoute(data: any) {
         // Șterge toate rutele anterioare de pe hartă
         this.graphicsLayerRoutes.removeAll();
@@ -493,7 +489,6 @@ export class EsriMapComponent implements OnInit, OnDestroy {
         }
     }
     
-    
     showDirections(features: any[]) {
         const directionsElement = document.createElement("ol");
         directionsElement.classList.add("esri-widget", "esri-widget--panel", "esri-directions__scroller");
@@ -509,9 +504,6 @@ export class EsriMapComponent implements OnInit, OnDestroy {
         this.view.ui.empty("top-right");
         this.view.ui.add(directionsElement, "top-right");
     }
-
-
-    
 
     getCurrentLocation() {
     // Verifică dacă geolocalizarea este disponibilă
@@ -567,7 +559,46 @@ export class EsriMapComponent implements OnInit, OnDestroy {
     }
 }
 
+    allLocations: any[] = []; // Array pentru a stoca toate locațiile
+    filteredLocations: any[] = []; // Array pentru locațiile filtrate
 
+    fetchLocations(): void {
+        // Exemplu simplu - în practică, aceasta poate fi o cerere HTTP
+        this.allLocations = [
+            { name: 'Cabinet 1', judet: 'Alba' },
+            { name: 'Cabinet 2', judet: 'Arad' },
+            { name: 'Cabinet 3', judet: 'Argeș' },
+            // Adaugă mai multe locații
+        ];
+        this.filteredLocations = [...this.allLocations]; // Inițial, toate locațiile sunt afișate
+    }
+    
+    counties: string[] = [
+        'Alba', 'Arad', 'Argeș', 'Bacău', 'Bihor', 'Bistrița-Năsăud', 'Brăila', 'Brașov', 'București', 'Buzău',
+        'Caraș-Severin', 'Călărași', 'Cluj', 'Constanța', 'Covasna', 'Dâmbovița', 'Dolj', 'Galați', 'Giurgiu',
+        'Gorj', 'Harghita', 'Hunedoara', 'Ialomița', 'Iași', 'Ilfov', 'Maramureș', 'Mehedinți', 'Mureș',
+        'Neamț', 'Olt', 'Prahova', 'Sălaj', 'Satu Mare', 'Sibiu', 'Suceava', 'Teleorman', 'Timiș', 'Tulcea',
+        'Vâlcea', 'Vaslui', 'Vrancea'
+    ];
+
+    onSearchCounty(event: Event): void {
+        const query = (event.target as HTMLInputElement).value.toLowerCase();
+        this.filteredLocations = this.allLocations.filter(location =>
+            location.county.toLowerCase().includes(query)
+        );
+    }
+    
+    onFilterCounty(event: Event): void {
+        const selectedCounty = (event.target as HTMLSelectElement).value;
+        if (selectedCounty) {
+            this.filteredLocations = this.allLocations.filter(location =>
+                location.judet === selectedCounty
+            );
+        } else {
+            this.filteredLocations = [...this.allLocations]; // Resetare
+        }
+    }
+    
     ngOnDestroy() {
         this.disconnectFirebase();
         if (this.view) {
@@ -575,3 +606,4 @@ export class EsriMapComponent implements OnInit, OnDestroy {
         }
     }
 }
+                                       
